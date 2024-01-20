@@ -1,3 +1,6 @@
+# dotenv environment variables
+.env
+**/.env
 
 # compiled output
 /dist
@@ -35,5 +38,3 @@ lerna-debug.log*
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
-
-.env
