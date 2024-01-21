@@ -26,10 +26,34 @@ export class SubjectsService {
   async getAllSubjects(user) {
     const { userId } = user;
 
+    const receivedUser = await this.usersRepository.findOne({
+      where: { id: userId },
+    });
+
     const query = this.subjectsRepository.createQueryBuilder('subject');
-    query.where({ userId });
+    query.where('subject.userId = :userId', { userId: receivedUser.id });
     const subjects = await query.getMany();
+    if (subjects.length === 0) {
+      return 'Você não tem materias';
+    }
     return subjects;
+  }
+
+  async getSubject(user, id: string) {
+    const { userId } = user;
+
+    const receivedUser = await this.usersRepository.findOne({
+      where: { id: userId },
+    });
+
+    const receivedSubject = await this.subjectsRepository.findOne({
+      where: {
+        user: receivedUser,
+        id: id,
+      },
+    });
+
+    return receivedSubject;
   }
 
   async receiveSubjectAndGenerateTopics(

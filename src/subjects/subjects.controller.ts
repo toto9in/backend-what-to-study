@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { SubjectsService } from './subjects.service';
 import { ReceiveSubjectDto } from './dto/receive-subject.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -15,6 +15,10 @@ export class SubjectsController {
     return this.subsjecsService.getAllSubjects(user);
   }
 
+  @Get('/:id')
+  async getSubject(@Param('id') id: string, @GetUser() user: User) {
+    return this.subsjecsService.getSubject(user, id);
+  }
   @Post()
   async receiveSubjectAndGenerateTopics(
     @Body()
