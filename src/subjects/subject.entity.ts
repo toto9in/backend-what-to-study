@@ -1,4 +1,11 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Topic } from '../topics/topic.entity';
 import { User } from '../users/user.entity';
 
@@ -10,6 +17,7 @@ export class Subject {
   name: string;
   @OneToMany((_key) => Topic, (topic) => topic.subject, { eager: true })
   topics: Topic[];
-  @OneToMany((_key) => User, (user) => user.subjects, { eager: true })
+  @ManyToOne((_key) => User, (user) => user.subjects)
+  @JoinColumn({ name: 'userId' })
   user: User;
 }

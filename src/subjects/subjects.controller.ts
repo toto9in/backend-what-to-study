@@ -1,14 +1,18 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { SubjectsService } from './subjects.service';
 import { ReceiveSubjectDto } from './dto/receive-subject.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { GetUser } from '../auth/get-user.decorator';
+import { User } from '../users/user.entity';
 
 @Controller('subjects')
+@UseGuards(JwtAuthGuard)
 export class SubjectsController {
   constructor(private subsjecsService: SubjectsService) {}
 
   @Get()
-  async getAllSubjects() {
-    return this.subsjecsService.getAllSubjects();
+  async getAllSubjects(@GetUser() user: User) {
+    return this.subsjecsService.getAllSubjects(user);
   }
 
   @Post()
@@ -22,7 +26,10 @@ export class SubjectsController {
   }
 
   @Post('/save')
-  async saveSubjectAndTopics(@Body() receivedSubject: ReceiveSubjectDto) {
-    return this.subsjecsService.saveSubjectAndTopics(receivedSubject);
+  async saveSubjectAndTopics(
+    @Body() receivedSubject: ReceiveSubjectDto,
+    @GetUser() user: User,
+  ) {
+    return this.subsjecsService.saveSubjectAndTopics(receivedSubject, user);
   }
 }

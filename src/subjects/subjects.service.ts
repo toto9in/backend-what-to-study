@@ -7,20 +7,29 @@ import OpenAI from 'openai';
 import { ConfigService } from '@nestjs/config';
 import { TopicsService } from '../topics/topics.service';
 
+import { UsersService } from '../users/users.service';
+import { User } from '../users/user.entity';
+
 @Injectable()
 export class SubjectsService {
   constructor(
     @InjectRepository(Subject) private subjectsRepository: Repository<Subject>,
     private configService: ConfigService,
     private topicsService: TopicsService,
+    @InjectRepository(User) private usersRepository: Repository<User>,
   ) {}
 
   openai = new OpenAI({
     apiKey: this.configService.get<string>('OPENAI_SECRET_KEY'),
   });
 
-  async getAllSubjects() {
-    return this.subjectsRepository.find();
+  async getAllSubjects(user) {
+    const { userId } = user;
+
+    const query = this.subjectsRepository.createQueryBuilder('subject');
+    query.where({ userId });
+    const subjects = await query.getMany();
+    return subjects;
   }
 
   async receiveSubjectAndGenerateTopics(
@@ -64,12 +73,22 @@ export class SubjectsService {
     return returnSubject;
   }
 
-  async saveSubjectAndTopics(receivedSubject: ReceiveSubjectDto) {
+  async saveSubjectAndTopics(receivedSubject: ReceiveSubjectDto, user) {
     const { name, topics } = receivedSubject;
+    const { userId } = user;
+
+    const receivedUser = await this.usersRepository.findOne({
+      where: { id: userId },
+    });
+
+    console.log(receivedUser.id);
 
     const subject = await this.subjectsRepository.save({
       name,
+      user: receivedUser,
     });
+
+    //const subjects = await this.subjectRepository.find({ where: { user: userId } });
 
     await this.topicsService.createTopics(topics, subject);
 
