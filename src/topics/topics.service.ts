@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Topic } from './topic.entity';
 import { Repository } from 'typeorm';
 import { Subject } from '../subjects/subject.entity';
+import { UpdateDoneStatusDto } from './dto/update-done-status.dto';
+import { TopicDoneStatus } from './topic-done-status.enum';
 
 @Injectable()
 export class TopicsService {
@@ -11,12 +13,21 @@ export class TopicsService {
   ) {}
 
   async createTopics(topics: string[], receivedSubject: Subject) {
-    for (const topic of topics) {
-      console.log(topic);
-      this.topicsRepository.save({
+    for (let i = 0; i < topics.length; i++) {
+      const topic = topics[i];
+      await this.topicsRepository.save({
         description: topic,
         subject: receivedSubject,
+        done: TopicDoneStatus.OPEN,
+        order: i, // definir o campo de ordem
       });
     }
+  }
+
+  async updateDoneStatus(id: string, updateDoneStatusDto: UpdateDoneStatusDto) {
+    const topic = await this.topicsRepository.findOne({ where: { id: id } });
+    topic.done = updateDoneStatusDto.done;
+    await this.topicsRepository.save(topic);
+    return topic;
   }
 }

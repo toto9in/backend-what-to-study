@@ -1,10 +1,12 @@
 import {
   Column,
+  CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { Topic } from '../topics/topic.entity';
 import { User } from '../users/user.entity';
@@ -20,4 +22,8 @@ export class Subject {
   @ManyToOne((_key) => User, (user) => user.subjects)
   @JoinColumn({ name: 'userId' })
   user: User;
+  @CreateDateColumn()
+  createdDate: Date;
+  @UpdateDateColumn()
+  updatedDate: Date;
 }

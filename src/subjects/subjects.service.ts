@@ -46,12 +46,14 @@ export class SubjectsService {
       where: { id: userId },
     });
 
-    const receivedSubject = await this.subjectsRepository.findOne({
-      where: {
-        user: receivedUser,
-        id: id,
-      },
-    });
+    const query = this.subjectsRepository.createQueryBuilder('subject');
+    query
+      .leftJoinAndSelect('subject.topics', 'topic')
+      .where('subject.id = :id', { id: id })
+      .andWhere('subject.userId = :userId', { userId: receivedUser.id })
+      .orderBy('topic.order', 'ASC');
+
+    const receivedSubject = await query.getMany();
 
     return receivedSubject;
   }
@@ -104,8 +106,6 @@ export class SubjectsService {
     const receivedUser = await this.usersRepository.findOne({
       where: { id: userId },
     });
-
-    console.log(receivedUser.id);
 
     const subject = await this.subjectsRepository.save({
       name,

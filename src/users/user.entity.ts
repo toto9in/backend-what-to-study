@@ -1,4 +1,11 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { Subject } from '../subjects/subject.entity';
 import { Exclude } from 'class-transformer';
 
@@ -14,4 +21,8 @@ export class User {
   password: string;
   @OneToMany((_type) => Subject, (subject) => subject.user)
   subjects: Subject[];
+  @CreateDateColumn()
+  createdDate: Date;
+  @UpdateDateColumn()
+  updatedDate: Date;
 }
