@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Subject } from './subject.entity';
@@ -7,11 +7,11 @@ import OpenAI from 'openai';
 import { ConfigService } from '@nestjs/config';
 import { TopicsService } from '../topics/topics.service';
 
-import { UsersService } from '../users/users.service';
 import { User } from '../users/user.entity';
 
 @Injectable()
 export class SubjectsService {
+  private readonly logger = new Logger(SubjectsService.name);
   constructor(
     @InjectRepository(Subject) private subjectsRepository: Repository<Subject>,
     private configService: ConfigService,
@@ -32,11 +32,7 @@ export class SubjectsService {
 
     const query = this.subjectsRepository.createQueryBuilder('subject');
     query.where('subject.userId = :userId', { userId: receivedUser.id });
-    const subjects = await query.getMany();
-    if (subjects.length === 0) {
-      return 'Você não tem materias';
-    }
-    return subjects;
+    return query.getMany();
   }
 
   async getSubject(user, id: string) {
@@ -60,9 +56,15 @@ export class SubjectsService {
 
   async receiveSubjectAndGenerateTopics(
     receiveSubjectDto: ReceiveSubjectDto,
+    user,
   ): Promise<ReceiveSubjectDto> {
     const { name } = receiveSubjectDto;
     let receivedTopics: string[] = [];
+    const { userId } = user;
+
+    this.logger.log(
+      `Generating topics for subject ${name} for user: ${userId} using OpenAI API`,
+    );
 
     try {
       const prompt_subject = `Me de topicos de estudo que devo estudar sobre ${name} 
@@ -84,10 +86,13 @@ export class SubjectsService {
         receivedTopics = completion.choices[0].text.split('\n');
         receivedTopics = receivedTopics.filter((subject) => subject !== '');
       } else {
+        this.logger.error(
+          `No response from OpenAI API for topics generation for subject ${name} of ${userId}`,
+        );
         throw new Error('No response from OpenAI API');
       }
     } catch (error) {
-      console.error(error);
+      this.logger.error(`Error generating response from OpenAI API: ${error}`);
       throw new Error('Error generating response from OpenAI API');
     }
 
@@ -96,6 +101,7 @@ export class SubjectsService {
       topics: receivedTopics,
     };
 
+    this.logger.log(`Subject ${name} and topics generated for user: ${userId}`);
     return returnSubject;
   }
 
@@ -112,10 +118,17 @@ export class SubjectsService {
       user: receivedUser,
     });
 
-    //const subjects = await this.subjectRepository.find({ where: { user: userId } });
-
+    this.logger.log(`Subject ${name} and topics created for user: ${userId}`);
     await this.topicsService.createTopics(topics, subject);
+  }
 
-    return 'subject saved';
+  async deleteSubject(id: string, user) {
+    const receivedSubject = await this.getSubject(user, id);
+
+    receivedSubject[0].topics.forEach(async (topic) => {
+      await this.topicsService.deleteTopic(topic.id);
+    });
+
+    await this.subjectsRepository.delete(id);
   }
 }

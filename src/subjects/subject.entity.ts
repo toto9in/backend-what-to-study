@@ -17,8 +17,12 @@ export class Subject {
   id: string;
   @Column()
   name: string;
-  @OneToMany((_key) => Topic, (topic) => topic.subject, { eager: true })
+  @OneToMany((_key) => Topic, (topic) => topic.subject, {
+    eager: true,
+    onDelete: 'CASCADE',
+  })
   topics: Topic[];
+
   @ManyToOne((_key) => User, (user) => user.subjects)
   @JoinColumn({ name: 'userId' })
   user: User;

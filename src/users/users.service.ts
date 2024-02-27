@@ -2,6 +2,7 @@ import {
   ConflictException,
   Injectable,
   InternalServerErrorException,
+  Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './user.entity';
@@ -11,6 +12,7 @@ import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
+  private readonly logger = new Logger(UsersService.name);
   constructor(
     @InjectRepository(User) private usersRepository: Repository<User>,
   ) {}
@@ -20,6 +22,7 @@ export class UsersService {
   }
 
   async createUser(createUserDto: createUserDto) {
+    this.logger.log('creating User');
     const { username, email, password } = createUserDto;
 
     //ajeitar as coisas de encryptograFIA
@@ -34,6 +37,7 @@ export class UsersService {
 
     try {
       await this.usersRepository.save(user);
+      this.logger.log(`User with ${user.id} created`);
     } catch (error) {
       if (error.code === '23505') {
         throw new ConflictException('email already exists');

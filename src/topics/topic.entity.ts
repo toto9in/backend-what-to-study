@@ -15,7 +15,10 @@ export class Topic {
   id: string;
   @Column()
   description: string;
-  @ManyToOne((_key) => Subject, (subject) => subject.topics, { eager: false })
+  @ManyToOne((_key) => Subject, (subject) => subject.topics, {
+    eager: false,
+    onDelete: 'CASCADE',
+  })
   subject: Subject;
   @Column()
   done: TopicDoneStatus;

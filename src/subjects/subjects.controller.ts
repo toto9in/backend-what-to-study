@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { SubjectsService } from './subjects.service';
 import { ReceiveSubjectDto } from './dto/receive-subject.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -21,11 +29,12 @@ export class SubjectsController {
   }
   @Post()
   async receiveSubjectAndGenerateTopics(
-    @Body()
-    receivedSubject: ReceiveSubjectDto,
+    @Body() receivedSubject: ReceiveSubjectDto,
+    @GetUser() user: User,
   ): Promise<ReceiveSubjectDto> {
     return this.subsjecsService.receiveSubjectAndGenerateTopics(
       receivedSubject,
+      user,
     );
   }
 
@@ -35,5 +44,10 @@ export class SubjectsController {
     @GetUser() user: User,
   ) {
     return this.subsjecsService.saveSubjectAndTopics(receivedSubject, user);
+  }
+
+  @Delete('/:id')
+  async deleteSubject(@Param('id') id: string, @GetUser() user: User) {
+    return this.subsjecsService.deleteSubject(id, user);
   }
 }
